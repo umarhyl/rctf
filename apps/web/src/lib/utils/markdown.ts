@@ -22,7 +22,9 @@ interface AlertToken {
   content: string
 }
 
-const nonce = crypto.randomUUID()
+const nonce = Array.from(crypto.getRandomValues(new Uint8Array(16)), byte =>
+  byte.toString(16).padStart(2, '0')
+).join('')
 const HYDRATION_ATTRS = [
   'data-alert',
   'data-type',
