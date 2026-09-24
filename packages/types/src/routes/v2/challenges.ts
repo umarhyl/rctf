@@ -2,18 +2,97 @@ import { z } from 'zod/mini'
 import { Permissions } from '../../enums'
 import { defineRoute } from '../../internal'
 import {
-  BadToken,
+  BadAlreadySolvedChallenge,
   BadBody,
   BadChallenge,
+  BadEnded,
+  BadFlag,
   BadNotStarted,
+  BadPerms,
+  BadRateLimit,
   BadReplayedRequest,
   BadSignature,
+  BadToken,
+  BadUnknownUser,
   GoodChallengeScoresV2,
   GoodChallengeSolvesV2,
   GoodChallengesV2,
   GoodDynamicScores,
+  GoodFlag,
 } from '../../responses'
+import { FileFieldSchema, isHttpUrl } from '../../util'
 import { DynamicScoresPayloadSchema } from '../../util/schemas'
+
+export const SubmitFlagRouteV2 = defineRoute({
+  path: '/v2/challs/:id/submit',
+  method: 'POST',
+  bodyFormat: 'form-data',
+  body: z
+    .object({
+      flag: z.string().check(z.minLength(1), z.maxLength(1024)),
+      aiChatLinks: z.string().check(z.maxLength(20_480)),
+      didNotUseAi: z.optional(z.literal('true')),
+      solverScript: z.optional(z.string().check(z.maxLength(32_768))),
+      solverFile: z.optional(
+        FileFieldSchema.check(
+          z.refine(
+            file =>
+              file.size > 0 &&
+              file.size <= 2_000_000 &&
+              /\.(?:py|js|ts|sh|c|cpp|go|rs|txt|png|jpe?g|webp)$/i.test(file.name),
+            { message: 'Use a script or image file up to 2 MB.' }
+          )
+        )
+      ),
+    })
+    .check(
+      z.superRefine((body, ctx) => {
+        const links = body.aiChatLinks
+          .split(/\r?\n/)
+          .map(link => link.trim())
+          .filter(Boolean)
+        if (
+          body.didNotUseAi === 'true'
+            ? links.length > 0
+            : links.length === 0 || links.length > 10
+        ) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['aiChatLinks'],
+            message: 'Provide 1-10 links or select "I did not use AI".',
+          })
+        }
+        for (const link of links) {
+          if (link.length > 2048 || !isHttpUrl(link)) {
+            ctx.addIssue({
+              code: 'custom',
+              path: ['aiChatLinks'],
+              message: 'Each AI chat link must be a valid HTTP(S) URL.',
+            })
+            break
+          }
+        }
+      })
+    ),
+  goodResponses: [GoodFlag],
+  badResponses: [
+    BadBody,
+    BadFlag,
+    BadPerms,
+    BadNotStarted,
+    BadEnded,
+    BadChallenge,
+    BadRateLimit,
+    BadAlreadySolvedChallenge,
+    BadUnknownUser,
+    BadToken,
+  ],
+  authRequired: true,
+  params: z.object({ id: z.string() }),
+  onlyWhenStarted: true,
+  onlyWhenStartedPermissionsBypass: Permissions.challsWrite,
+  onlyWhenNotFinished: true,
+})
 
 export const GetChallengesRouteV2 = defineRoute({
   publicAccess: ['challenges'],

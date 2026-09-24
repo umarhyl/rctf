@@ -12,7 +12,7 @@
   const entries = $derived(detailEntries(submission))
 </script>
 
-<detail-row>
+<detail-row data-multiline={entries.some(entry => entry.multiline) || undefined}>
   <detail-label>Submitted</detail-label>
   <detail-pills>
     {#if entries.length === 0}
@@ -21,7 +21,8 @@
       {#each entries as entry (`${entry.label}:${entry.value}`)}
         <detail-pill
           data-wide={entry.wide || undefined}
-          title={`${entry.label}: ${entry.value}`}
+          data-multiline={entry.multiline || undefined}
+          title={entry.multiline ? undefined : `${entry.label}: ${entry.value}`}
         >
           <pill-label>{entry.label}</pill-label>
           {#if entry.href}
@@ -49,6 +50,11 @@
     padding-inline: var(--space-2xs) var(--space-2xs);
     padding-inline-start: 3.25rem;
     background: var(--background-l3);
+
+    &[data-multiline] {
+      block-size: auto;
+      min-block-size: 3rem;
+    }
   }
 
   detail-label {
@@ -83,6 +89,18 @@
 
     &[data-wide] {
       max-inline-size: 40rem;
+    }
+
+    &[data-multiline] {
+      align-items: flex-start;
+      flex-direction: column;
+
+      code {
+        inline-size: 100%;
+        max-block-size: 12rem;
+        overflow: auto;
+        white-space: pre-wrap;
+      }
     }
   }
 

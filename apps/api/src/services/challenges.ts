@@ -23,6 +23,7 @@ import type {
   BadPerms,
   BadRateLimit,
   BadUnknownUser,
+  FileField,
   GoodFlag,
   ResponseHelpers,
 } from '@rctf/types'
@@ -38,6 +39,7 @@ import type { ScoreboardView } from './scoreboard-visibility'
 import { inJsonbArrayPlaceholder } from '../lib/db-bulk'
 import { preparedPerDb } from '../lib/prepared'
 import { type MatchedFlagEntry, verifyFlagEntries } from '../providers/flags'
+import { uploadProvider } from '../providers/instances/uploads'
 import { forceLeaderboardUpdate, requestChallengeRecompute } from '../workers'
 import { sendBloodMessage, shouldNotifyBloodbot } from './bloodbot'
 import {
@@ -390,6 +392,10 @@ export const createSolveAndGetBloodNumber = async (
     submissionIp?: string | null
     submittedFlag?: string
     aiChatUrl?: string
+    aiChatUrls?: string[]
+    didNotUseAi?: boolean
+    solverScript?: string
+    solverFileUrl?: string
     matchedFlag?: MatchedFlagEntry
     cheated?: boolean
     cheatedFrom?: string
@@ -432,6 +438,10 @@ export const createSolveAndGetBloodNumber = async (
         : SubmissionResult.CORRECT,
       details: {
         ...(params.aiChatUrl ? { aiChatUrl: params.aiChatUrl } : {}),
+        ...(params.aiChatUrls ? { aiChatUrls: params.aiChatUrls } : {}),
+        ...(params.didNotUseAi ? { didNotUseAi: true } : {}),
+        ...(params.solverScript ? { solverScript: params.solverScript } : {}),
+        ...(params.solverFileUrl ? { solverFileUrl: params.solverFileUrl } : {}),
         ...(params.submittedFlag
           ? { submittedFlag: params.submittedFlag }
           : {}),
@@ -1475,7 +1485,11 @@ export const submitFlag = async (
     userId: string
     challengeId: string
     flag: string
-    aiChatUrl: string
+    aiChatUrl?: string
+    aiChatUrls?: string[]
+    didNotUseAi?: boolean
+    solverScript?: string
+    solverFile?: FileField
     submissionIp: string | undefined
   }
 ): Promise<ReturnType<SubmitResponseHelpers[keyof SubmitResponseHelpers]>> => {
@@ -1518,6 +1532,12 @@ export const submitFlag = async (
     params.flag,
     { db, teamId: params.userId, challengeId: params.challengeId }
   )
+  const proof = {
+    ...(params.aiChatUrl ? { aiChatUrl: params.aiChatUrl } : {}),
+    ...(params.aiChatUrls ? { aiChatUrls: params.aiChatUrls } : {}),
+    ...(params.didNotUseAi ? { didNotUseAi: true } : {}),
+    ...(params.solverScript ? { solverScript: params.solverScript } : {}),
+  }
   if (matched === null) {
     await createSubmission(db, {
       kind: SubmissionKind.FLAG,
@@ -1527,7 +1547,7 @@ export const submitFlag = async (
       result: SubmissionResult.INCORRECT,
       details: {
         submittedFlag: params.flag,
-        aiChatUrl: params.aiChatUrl,
+        ...proof,
       },
     }).catch(err =>
       log.error(
@@ -1562,12 +1582,22 @@ export const submitFlag = async (
 
   let bloodNumber: number | null
   try {
+    const solverFileUrl = params.solverFile
+      ? await uploadProvider.uploadFile(
+          Buffer.from(await params.solverFile.arrayBuffer()),
+          `solver-submissions/${crypto.randomUUID()}/${params.solverFile.name}`
+        )
+      : undefined
     bloodNumber = await createSolveAndGetBloodNumber(db, {
       challengeId: params.challengeId,
       userId: params.userId,
       submissionIp: params.submissionIp,
       submittedFlag: params.flag,
       aiChatUrl: params.aiChatUrl,
+      aiChatUrls: params.aiChatUrls,
+      didNotUseAi: params.didNotUseAi,
+      solverScript: params.solverScript,
+      solverFileUrl,
       matchedFlag: matched,
       cheated,
       cheatedFrom,
@@ -1581,7 +1611,7 @@ export const submitFlag = async (
         userId: params.userId,
         ip: params.submissionIp,
         result: SubmissionResult.ALREADY_SOLVED,
-        details: { submittedFlag: params.flag, aiChatUrl: params.aiChatUrl },
+        details: { submittedFlag: params.flag, ...proof },
       }).catch(err =>
         log.error(
           { err, challengeId: params.challengeId, userId: params.userId },

@@ -2,7 +2,7 @@
   import {
     BadAlreadySolvedChallenge,
     GoodFlag,
-    SubmitFlagRoute,
+    SubmitFlagRouteV2,
     type Challenge,
   } from '@rctf/types'
   import { showApiError } from '$lib/api'
@@ -53,12 +53,16 @@
     return () => clearInterval(interval)
   })
 
-  const form = useApiForm(SubmitFlagRoute, {
+  let didNotUseAi = $state(false)
+  let selectedFileName = $state('')
+  const form = useApiForm(SubmitFlagRouteV2, {
     onSuccess: response => {
       if (response.kind === GoodFlag.kind) {
         toast.success('Flag correct!')
         onSolve(challenge.id)
-        form.setData({ flag: '', aiChatUrl: '' })
+        form.setData({ flag: '', aiChatLinks: '', solverScript: '', solverFile: undefined })
+        didNotUseAi = false
+        selectedFileName = ''
       } else if (response.kind === BadAlreadySolvedChallenge.kind) {
         toast.info('You already solved this challenge')
         onSolve(challenge.id)
@@ -76,9 +80,10 @@
   function handleSubmit(event: SubmitEvent) {
     event.preventDefault()
     const flag = (form.data.flag ?? '').trim()
-    const aiChatUrl = (form.data.aiChatUrl ?? '').trim()
-    if (!flag || !aiChatUrl) return
-    form.setData({ flag, aiChatUrl })
+    const aiChatLinks = (form.data.aiChatLinks ?? '').trim()
+    if (!flag || (!didNotUseAi && !aiChatLinks)) return
+    form.setData({ flag, aiChatLinks: didNotUseAi ? '' : aiChatLinks,
+      didNotUseAi: didNotUseAi ? 'true' : undefined })
     form.submit()
   }
 </script>
@@ -102,21 +107,36 @@
   {:else}
     <form onsubmit={handleSubmit}>
       {#if submitState !== 'solved'}
-        <Input
-          type="url"
-          placeholder="AI chat link (https://...)"
-          aria-label="AI chat link"
-          aria-invalid={!!form.errors.aiChatUrl || undefined}
-          required
-          maxlength={2048}
-          pattern="https?://.*"
-          disabled={form.submitting}
-          bind:value={form.data.aiChatUrl}
-        />
-        {#if form.errors.aiChatUrl}
-          <p role="alert">{form.errors.aiChatUrl}</p>
+        <label for="ai-chat-links">AI chat links (one per line)</label>
+        <textarea id="ai-chat-links" placeholder="https://..." rows="2" maxlength="20480"
+          required={!didNotUseAi} disabled={form.submitting || didNotUseAi}
+          aria-invalid={!!form.errors.aiChatLinks || undefined}
+          bind:value={form.data.aiChatLinks}></textarea>
+        <label class="option">
+          <input type="checkbox" bind:checked={didNotUseAi} disabled={form.submitting} />
+          I did not use AI
+        </label>
+        {#if form.errors.aiChatLinks}
+          <p role="alert">{form.errors.aiChatLinks}</p>
         {/if}
+        <label for="solver-script">Solver script (optional)</label>
+        <textarea id="solver-script" rows="3" maxlength="32768" disabled={form.submitting}
+          placeholder="Paste your solver script here"
+          bind:value={form.data.solverScript}></textarea>
+        {#if form.errors.solverScript}<p role="alert">{form.errors.solverScript}</p>{/if}
+        <label for="solver-file">Or upload a script/image (optional, max 2 MB)</label>
+        <input id="solver-file" type="file"
+          accept=".py,.js,.ts,.sh,.c,.cpp,.go,.rs,.txt,.png,.jpg,.jpeg,.webp"
+          disabled={form.submitting}
+          onchange={event => {
+            const file = event.currentTarget.files?.[0]
+            selectedFileName = file?.name ?? ''
+            form.setData({ solverFile: file })
+          }} />
+        {#if selectedFileName}<small>{selectedFileName}</small>{/if}
+        {#if form.errors.solverFile}<p role="alert">{form.errors.solverFile}</p>{/if}
       {/if}
+      {#if form.errors._form}<p role="alert">{form.errors._form}</p>{/if}
       <submit-row>
         {#if submitState === 'solved'}
           <submit-notice data-tone="success">
@@ -144,7 +164,7 @@
           disabled={form.submitting ||
             submitState === 'solved' ||
             !form.data.flag?.trim() ||
-            !form.data.aiChatUrl?.trim()}
+            (!didNotUseAi && !form.data.aiChatLinks?.trim())}
         >
           {#if form.submitting}
             <Spinner />
@@ -174,6 +194,23 @@
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+  }
+
+  label:not(.option) {
+    color: var(--foreground-l3);
+    font-size: var(--step--1);
+  }
+
+  .option { display: flex; align-items: center; gap: 0.5rem; }
+
+  textarea, input[type='file'] {
+    inline-size: 100%;
+    min-inline-size: 0;
+    padding: 0.5rem;
+    color: var(--foreground-l0);
+    background: var(--background-l4);
+    border: 2px solid transparent;
+    border-radius: var(--radius-md);
   }
 
   submit-row {

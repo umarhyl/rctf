@@ -177,6 +177,8 @@
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
+    max-block-size: 60%;
+    overflow-y: auto;
     gap: 0.5rem;
     padding: 0.5rem 1.25rem 1rem;
     background: var(--background-l2);

@@ -72,6 +72,7 @@ export type DetailEntry = {
   value: string
   href?: string
   wide?: boolean
+  multiline?: boolean
 }
 
 export const KIND_OPTIONS = [
@@ -264,6 +265,27 @@ export function detailEntries(submission: Submission): DetailEntry[] {
           : {}),
         wide: true,
       })
+    }
+    if (Array.isArray(details.aiChatUrls)) {
+      for (const [index, url] of details.aiChatUrls.entries()) {
+        if (typeof url !== 'string') continue
+        entries.push({
+          label: `AI chat ${index + 1}`,
+          value: url,
+          ...(/^https?:\/\//i.test(url) ? { href: url } : {}),
+          wide: true,
+        })
+      }
+    }
+    if (details.didNotUseAi === true) {
+      entries.push({ label: 'AI', value: 'I did not use AI' })
+    }
+    if (typeof details.solverScript === 'string') {
+      entries.push({ label: 'solver script', value: details.solverScript, wide: true, multiline: true })
+    }
+    if (typeof details.solverFileUrl === 'string') {
+      entries.push({ label: 'solver file', value: details.solverFileUrl,
+        ...(/^(https?:\/\/|\/uploads\/)/i.test(details.solverFileUrl) ? { href: details.solverFileUrl } : {}), wide: true })
     }
     if (submission.result === SubmissionResult.CHEATED) {
       entries.push({
