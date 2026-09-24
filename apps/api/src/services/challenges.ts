@@ -389,6 +389,7 @@ export const createSolveAndGetBloodNumber = async (
     userId: string
     submissionIp?: string | null
     submittedFlag?: string
+    aiChatUrl?: string
     matchedFlag?: MatchedFlagEntry
     cheated?: boolean
     cheatedFrom?: string
@@ -430,6 +431,7 @@ export const createSolveAndGetBloodNumber = async (
         ? SubmissionResult.CHEATED
         : SubmissionResult.CORRECT,
       details: {
+        ...(params.aiChatUrl ? { aiChatUrl: params.aiChatUrl } : {}),
         ...(params.submittedFlag
           ? { submittedFlag: params.submittedFlag }
           : {}),
@@ -1473,6 +1475,7 @@ export const submitFlag = async (
     userId: string
     challengeId: string
     flag: string
+    aiChatUrl: string
     submissionIp: string | undefined
   }
 ): Promise<ReturnType<SubmitResponseHelpers[keyof SubmitResponseHelpers]>> => {
@@ -1524,6 +1527,7 @@ export const submitFlag = async (
       result: SubmissionResult.INCORRECT,
       details: {
         submittedFlag: params.flag,
+        aiChatUrl: params.aiChatUrl,
       },
     }).catch(err =>
       log.error(
@@ -1563,6 +1567,7 @@ export const submitFlag = async (
       userId: params.userId,
       submissionIp: params.submissionIp,
       submittedFlag: params.flag,
+      aiChatUrl: params.aiChatUrl,
       matchedFlag: matched,
       cheated,
       cheatedFrom,
@@ -1576,7 +1581,7 @@ export const submitFlag = async (
         userId: params.userId,
         ip: params.submissionIp,
         result: SubmissionResult.ALREADY_SOLVED,
-        details: { submittedFlag: params.flag },
+        details: { submittedFlag: params.flag, aiChatUrl: params.aiChatUrl },
       }).catch(err =>
         log.error(
           { err, challengeId: params.challengeId, userId: params.userId },

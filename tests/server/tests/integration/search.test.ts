@@ -84,7 +84,10 @@ const submitFlag = async (userId: string) => {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ flag: challengeFlag }),
+      body: JSON.stringify({
+        aiChatUrl: 'https://chatgpt.com/share/test-chat',
+        flag: challengeFlag,
+      }),
     }
   )
 }
@@ -122,7 +125,10 @@ beforeAll(async () => {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${alphaToken}`,
       },
-      body: JSON.stringify({ flag: ch2.challenge.flag }),
+      body: JSON.stringify({
+        aiChatUrl: 'https://chatgpt.com/share/test-chat',
+        flag: ch2.challenge.flag,
+      }),
     }
   )
 

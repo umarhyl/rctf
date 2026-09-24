@@ -58,7 +58,7 @@
       if (response.kind === GoodFlag.kind) {
         toast.success('Flag correct!')
         onSolve(challenge.id)
-        form.setData({ flag: '' })
+        form.setData({ flag: '', aiChatUrl: '' })
       } else if (response.kind === BadAlreadySolvedChallenge.kind) {
         toast.info('You already solved this challenge')
         onSolve(challenge.id)
@@ -76,8 +76,9 @@
   function handleSubmit(event: SubmitEvent) {
     event.preventDefault()
     const flag = (form.data.flag ?? '').trim()
-    if (!flag) return
-    form.setData({ flag })
+    const aiChatUrl = (form.data.aiChatUrl ?? '').trim()
+    if (!flag || !aiChatUrl) return
+    form.setData({ flag, aiChatUrl })
     form.submit()
   }
 </script>
@@ -100,6 +101,22 @@
     </Button>
   {:else}
     <form onsubmit={handleSubmit}>
+      {#if submitState !== 'solved'}
+        <Input
+          type="url"
+          placeholder="AI chat link (https://...)"
+          aria-label="AI chat link"
+          aria-invalid={!!form.errors.aiChatUrl || undefined}
+          required
+          maxlength={2048}
+          pattern="https?://.*"
+          disabled={form.submitting}
+          bind:value={form.data.aiChatUrl}
+        />
+        {#if form.errors.aiChatUrl}
+          <p role="alert">{form.errors.aiChatUrl}</p>
+        {/if}
+      {/if}
       <submit-row>
         {#if submitState === 'solved'}
           <submit-notice data-tone="success">
@@ -115,6 +132,7 @@
             spellcheck="false"
             data-flag-input
             aria-label="Flag"
+            required
             aria-invalid={!!form.errors._form || undefined}
             disabled={form.submitting}
             bind:value={form.data.flag}
@@ -123,7 +141,10 @@
         <button
           type="submit"
           aria-label="Submit flag"
-          disabled={form.submitting || submitState === 'solved'}
+          disabled={form.submitting ||
+            submitState === 'solved' ||
+            !form.data.flag?.trim() ||
+            !form.data.aiChatUrl?.trim()}
         >
           {#if form.submitting}
             <Spinner />
@@ -150,7 +171,9 @@
   }
 
   form {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
   submit-row {

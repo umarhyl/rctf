@@ -45,6 +45,32 @@ function submissionWith(overrides: Partial<Submission>): Submission {
   }
 }
 
+test('shows the AI chat link on flag submissions, including legacy records', () => {
+  const aiChatUrl = 'https://chatgpt.com/share/test-chat'
+  expect(
+    detailEntries(
+      submissionWith({ details: { submittedFlag: 'flag{test}', aiChatUrl } })
+    )
+  ).toContainEqual({
+    label: 'AI chat',
+    value: aiChatUrl,
+    href: aiChatUrl,
+    wide: true,
+  })
+  expect(
+    detailEntries(submissionWith({ details: { submittedFlag: 'flag{old}' } }))
+  ).toEqual([{ label: 'flag', value: 'flag{old}' }])
+  expect(
+    detailEntries(
+      submissionWith({ details: { aiChatUrl: 'javascript:alert(1)' } })
+    )
+  ).toContainEqual({
+    label: 'AI chat',
+    value: 'javascript:alert(1)',
+    wide: true,
+  })
+})
+
 describe('applyDeepLinkFilters', () => {
   const team = { id: 'team-1', name: 'otter-sec', avatarUrl: null }
   const secondTeam = { id: 'team-2', name: 'ottr-sec', avatarUrl: null }

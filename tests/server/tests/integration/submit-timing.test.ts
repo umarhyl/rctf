@@ -41,7 +41,10 @@ describe('submit-timing', () => {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${authToken}`,
           },
-          body: JSON.stringify({ flag: challengeData.challenge.flag }),
+          body: JSON.stringify({
+            aiChatUrl: 'https://chatgpt.com/share/test-chat',
+            flag: challengeData.challenge.flag,
+          }),
         }
       )
 
@@ -66,7 +69,10 @@ describe('submit-timing', () => {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${authToken}`,
           },
-          body: JSON.stringify({ flag: challengeData.challenge.flag }),
+          body: JSON.stringify({
+            aiChatUrl: 'https://chatgpt.com/share/test-chat',
+            flag: challengeData.challenge.flag,
+          }),
         }
       )
 

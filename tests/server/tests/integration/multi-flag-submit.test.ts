@@ -60,7 +60,10 @@ const submit = async (challengeId: string, userId: string, flag: string) => {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${authToken}`,
       },
-      body: JSON.stringify({ flag }),
+      body: JSON.stringify({
+        aiChatUrl: 'https://chatgpt.com/share/test-chat',
+        flag,
+      }),
     }
   )
 }
@@ -108,12 +111,14 @@ describe('multi-flag submission', () => {
       .from(submissions)
       .where(eq(submissions.challengeId, challengeId))
     expect(rows.map(row => row.details)).toContainEqual({
+      aiChatUrl: 'https://chatgpt.com/share/test-chat',
       submittedFlag: 'flag{first}',
       matchedFlagIndex: 0,
       matchedFlagProvider: 'flags/static',
       matchedFlagConfig: { flag: 'flag{first}' },
     })
     expect(rows.map(row => row.details)).toContainEqual({
+      aiChatUrl: 'https://chatgpt.com/share/test-chat',
       submittedFlag: 'flag{second}',
       matchedFlagIndex: 1,
       matchedFlagProvider: 'flags/static',
@@ -141,7 +146,10 @@ describe('multi-flag submission', () => {
       .from(submissions)
       .where(eq(submissions.challengeId, challengeId))
     expect(rows).toHaveLength(1)
-    expect(rows[0]!.details).toEqual({ submittedFlag: 'flag{third}' })
+    expect(rows[0]!.details).toEqual({
+      aiChatUrl: 'https://chatgpt.com/share/test-chat',
+      submittedFlag: 'flag{third}',
+    })
   })
 
   test('a challenge without flag entries rejects submissions', async () => {
@@ -242,12 +250,14 @@ describe('multi-flag submission', () => {
       .from(submissions)
       .where(eq(submissions.challengeId, challengeId))
     expect(rows.map(row => row.details)).toContainEqual({
+      aiChatUrl: 'https://chatgpt.com/share/test-chat',
       submittedFlag: 'flag{exact}',
       matchedFlagIndex: 0,
       matchedFlagProvider: 'flags/static',
       matchedFlagConfig: { flag: 'flag{exact}' },
     })
     expect(rows.map(row => row.details)).toContainEqual({
+      aiChatUrl: 'https://chatgpt.com/share/test-chat',
       submittedFlag: 'flag{v2}',
       matchedFlagIndex: 1,
       matchedFlagProvider: 'flags/regex',

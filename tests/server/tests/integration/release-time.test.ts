@@ -200,7 +200,10 @@ describe('challenge release time', () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify({ flag: challenge.flag }),
+        body: JSON.stringify({
+          aiChatUrl: 'https://chatgpt.com/share/test-chat',
+          flag: challenge.flag,
+        }),
       })
 
       await expectResponse(res, BadChallenge)
@@ -224,7 +227,10 @@ describe('challenge release time', () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify({ flag: challenge.flag }),
+        body: JSON.stringify({
+          aiChatUrl: 'https://chatgpt.com/share/test-chat',
+          flag: challenge.flag,
+        }),
       })
 
       await expectResponse(res, GoodFlag)

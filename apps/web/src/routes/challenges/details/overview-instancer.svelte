@@ -1,6 +1,5 @@
 <script lang="ts">
   import {
-    BadAlreadySolvedChallenge,
     BadInstancerError,
     CreateAdminInstanceRouteV2,
     CreateInstanceRouteV2,
@@ -8,14 +7,12 @@
     DeleteInstanceRouteV2,
     ExtendAdminInstanceRouteV2,
     ExtendInstanceRouteV2,
-    GoodFlag,
     GoodInstancerActionResult,
     GoodInstanceStatus,
     InstanceStatus,
     ProtectedAction,
     RunAdminInstanceActionRouteV2,
     RunInstanceActionRouteV2,
-    SubmitFlagRoute,
   } from '@rctf/types'
   import { useQueryClient } from '@tanstack/svelte-query'
   import { apiRequest, showApiError } from '$lib/api'
@@ -50,7 +47,6 @@
     instancerExtendable,
     instancerStoppable,
     instancerActions,
-    onSolve,
     admin = false,
   }: Props = $props()
 
@@ -186,16 +182,9 @@
       return
     }
 
-    const res = await apiRequest(SubmitFlagRoute, { id: challengeId, flag })
-    if (res.kind === GoodFlag.kind) {
-      toast.success('Flag correct!')
-      onSolve(challengeId)
-    } else if (res.kind === BadAlreadySolvedChallenge.kind) {
-      toast.info('You already solved this challenge')
-      onSolve(challengeId)
-    } else {
-      showApiError(res)
-    }
+    toast.info(
+      'Submit this flag with your AI chat link in the submission form.'
+    )
   }
 
   async function runAction(actionId: string) {

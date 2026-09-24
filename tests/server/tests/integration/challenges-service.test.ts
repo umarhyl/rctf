@@ -626,7 +626,10 @@ describe('challenges service', () => {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${authToken}`,
           },
-          body: JSON.stringify({ flag: 'wrong_flag' }),
+          body: JSON.stringify({
+            aiChatUrl: 'https://chatgpt.com/share/test-chat',
+            flag: 'wrong_flag',
+          }),
         })
       }
 
@@ -636,7 +639,10 @@ describe('challenges service', () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify({ flag: 'wrong_flag' }),
+        body: JSON.stringify({
+          aiChatUrl: 'https://chatgpt.com/share/test-chat',
+          flag: 'wrong_flag',
+        }),
       })
 
       const body = await expectResponse(res, BadRateLimit)
@@ -954,7 +960,10 @@ describe('challenges service', () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify({ flag: challenge.flag }),
+        body: JSON.stringify({
+          aiChatUrl: 'https://chatgpt.com/share/test-chat',
+          flag: challenge.flag,
+        }),
       })
 
       await expectResponse(res, GoodFlag)

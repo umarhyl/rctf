@@ -116,7 +116,10 @@ describe('admin submissions', () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${alphaToken}`,
         },
-        body: JSON.stringify({ flag: alphaChallenge.challenge.flag }),
+        body: JSON.stringify({
+          aiChatUrl: 'https://chatgpt.com/share/test-chat',
+          flag: alphaChallenge.challenge.flag,
+        }),
       }
     )
     await expectResponse(goodRes, GoodFlag)
@@ -130,7 +133,10 @@ describe('admin submissions', () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${betaToken}`,
         },
-        body: JSON.stringify({ flag: 'wrong' }),
+        body: JSON.stringify({
+          aiChatUrl: 'https://chatgpt.com/share/test-chat',
+          flag: 'wrong',
+        }),
       }
     )
     await expectResponse(badRes, BadFlag)
@@ -157,6 +163,7 @@ describe('admin submissions', () => {
       storedSubmissions.map(submission => submission.details)
     ).toContainEqual({
       submittedFlag: alphaChallenge.challenge.flag,
+      aiChatUrl: 'https://chatgpt.com/share/test-chat',
       matchedFlagIndex: 0,
       matchedFlagProvider: 'flags/static',
       matchedFlagConfig: { flag: alphaChallenge.challenge.flag },
@@ -165,6 +172,7 @@ describe('admin submissions', () => {
       storedSubmissions.map(submission => submission.details)
     ).toContainEqual({
       submittedFlag: 'wrong',
+      aiChatUrl: 'https://chatgpt.com/share/test-chat',
     })
 
     const token = await generateAuthToken(admin.user.id)
@@ -270,7 +278,10 @@ describe('admin submissions', () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${submitToken}`,
         },
-        body: JSON.stringify({ flag: ownerFlag }),
+        body: JSON.stringify({
+          aiChatUrl: 'https://chatgpt.com/share/test-chat',
+          flag: ownerFlag,
+        }),
       })
       await expectResponse(res, GoodFlag)
     }

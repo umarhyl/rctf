@@ -1009,7 +1009,10 @@ describe('admin settings', () => {
             headers: {
               ...(await jsonHeaders(unprivilegedUser.user.id)),
             },
-            body: JSON.stringify({ flag: challenge.flag }),
+            body: JSON.stringify({
+              aiChatUrl: 'https://chatgpt.com/share/test-chat',
+              flag: challenge.flag,
+            }),
           }
         )
         await expectResponse(res, BadEnded)

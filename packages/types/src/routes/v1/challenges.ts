@@ -33,6 +33,12 @@ export const SubmitFlagRoute = defineRoute({
   path: '/v1/challs/:id/submit',
   method: 'POST',
   body: z.object({
+    aiChatUrl: z
+      .url({ protocol: /^https?$/ })
+      .check(
+        z.maxLength(2048),
+        z.describe('Link to the AI chat used to solve the challenge.')
+      ),
     flag: z
       .string()
       .check(z.maxLength(1024))

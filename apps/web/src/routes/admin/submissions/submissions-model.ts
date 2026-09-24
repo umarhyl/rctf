@@ -255,6 +255,16 @@ export function detailEntries(submission: Submission): DetailEntry[] {
     const entries: DetailEntry[] = [
       { label: 'flag', value: formatDetailValue(details.submittedFlag) },
     ]
+    if (typeof details.aiChatUrl === 'string') {
+      entries.push({
+        label: 'AI chat',
+        value: details.aiChatUrl,
+        ...(/^https?:\/\//i.test(details.aiChatUrl)
+          ? { href: details.aiChatUrl }
+          : {}),
+        wide: true,
+      })
+    }
     if (submission.result === SubmissionResult.CHEATED) {
       entries.push({
         label: 'owner',

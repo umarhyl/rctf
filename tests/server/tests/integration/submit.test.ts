@@ -2,6 +2,7 @@ import { config } from '@rctf/config'
 import { createDatabase, solves, users } from '@rctf/db'
 import {
   BadAlreadySolvedChallenge,
+  BadBody,
   BadChallenge,
   BadFlag,
   BadJson,
@@ -42,11 +43,47 @@ afterAll(async () => {
 })
 
 describe('submit', () => {
+  test('requires an HTTP(S) AI chat link before checking the flag', async () => {
+    const authToken = await createToken(TokenKind.Auth, userData.user.id)
+    for (const aiChatUrl of [
+      undefined,
+      '',
+      'not-a-url',
+      'javascript:alert(1)',
+      'ftp://example.com/chat',
+    ]) {
+      const res = await request(
+        app,
+        `/api/v1/challs/${encodeURIComponent(challengeData.challenge.id)}/submit`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify({
+            flag: challengeData.challenge.flag,
+            aiChatUrl,
+          }),
+        }
+      )
+      await expectResponse(res, BadBody)
+    }
+    const rows = await getDb()
+      .select()
+      .from(solves)
+      .where(eq(solves.userid, userData.user.id))
+    expect(rows).toHaveLength(0)
+  })
+
   test('fails with badToken when unauthorized', async () => {
     const res = await request(app, '/api/v1/challs/1/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ flag: 'wrong_flag' }),
+      body: JSON.stringify({
+        aiChatUrl: 'https://chatgpt.com/share/test-chat',
+        flag: 'wrong_flag',
+      }),
     })
 
     await expectResponse(res, BadToken)
@@ -81,7 +118,10 @@ describe('submit', () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify({ flag: 'wrong_flag' }),
+        body: JSON.stringify({
+          aiChatUrl: 'https://chatgpt.com/share/test-chat',
+          flag: 'wrong_flag',
+        }),
       }
     )
 
@@ -99,7 +139,10 @@ describe('submit', () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify({ flag: 'wrong_flag' }),
+        body: JSON.stringify({
+          aiChatUrl: 'https://chatgpt.com/share/test-chat',
+          flag: 'wrong_flag',
+        }),
       }
     )
 
@@ -117,7 +160,10 @@ describe('submit', () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify({ flag: challengeData.challenge.flag }),
+        body: JSON.stringify({
+          aiChatUrl: 'https://chatgpt.com/share/test-chat',
+          flag: challengeData.challenge.flag,
+        }),
       }
     )
 
@@ -135,7 +181,10 @@ describe('submit', () => {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${authToken}`,
         },
-        body: JSON.stringify({ flag: challengeData.challenge.flag }),
+        body: JSON.stringify({
+          aiChatUrl: 'https://chatgpt.com/share/test-chat',
+          flag: challengeData.challenge.flag,
+        }),
       }
     )
 
@@ -161,7 +210,10 @@ describe('submit', () => {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${authToken}`,
           },
-          body: JSON.stringify({ flag: challengeData.challenge.flag }),
+          body: JSON.stringify({
+            aiChatUrl: 'https://chatgpt.com/share/test-chat',
+            flag: challengeData.challenge.flag,
+          }),
         }
       )
 
@@ -176,7 +228,10 @@ describe('submit', () => {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${authToken}`,
           },
-          body: JSON.stringify({ flag: 'wrong_flag' }),
+          body: JSON.stringify({
+            aiChatUrl: 'https://chatgpt.com/share/test-chat',
+            flag: 'wrong_flag',
+          }),
         }
       )
 
@@ -214,7 +269,10 @@ describe('submit', () => {
             'Content-Type': 'application/json',
             Authorization: `Bearer ${authToken}`,
           },
-          body: JSON.stringify({ flag: challengeData.challenge.flag }),
+          body: JSON.stringify({
+            aiChatUrl: 'https://chatgpt.com/share/test-chat',
+            flag: challengeData.challenge.flag,
+          }),
         }
       )
 
