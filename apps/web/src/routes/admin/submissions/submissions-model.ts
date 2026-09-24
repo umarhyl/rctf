@@ -280,9 +280,7 @@ export function detailEntries(submission: Submission): DetailEntry[] {
     if (details.didNotUseAi === true) {
       entries.push({ label: 'AI', value: 'I did not use AI' })
     }
-    if (typeof details.solverScript === 'string') {
-      entries.push({ label: 'solver script', value: details.solverScript, wide: true, multiline: true })
-    }
+
     if (typeof details.solverFileUrl === 'string') {
       entries.push({ label: 'solver file', value: details.solverFileUrl,
         ...(/^(https?:\/\/|\/uploads\/)/i.test(details.solverFileUrl) ? { href: details.solverFileUrl } : {}), wide: true })

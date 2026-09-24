@@ -12,7 +12,6 @@ challsGroup.route(SubmitFlagRouteV2, async ({ res, ctx, params, body, user }) =>
       .map(link => link.trim())
       .filter(Boolean),
     didNotUseAi: body.didNotUseAi === 'true',
-    solverScript: body.solverScript?.trim() || undefined,
     solverFile: body.solverFile,
     submissionIp: ctx.var.ip,
   })

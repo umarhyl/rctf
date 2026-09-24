@@ -12,6 +12,8 @@
     IconInfo,
     IconPaperPlaneTilt,
     IconSignIn,
+    IconPlus,
+    IconX,
   } from '$lib/icons'
   import { useClientConfig } from '$lib/query/config'
   import { useCurrentUser } from '$lib/query/user'
@@ -53,15 +55,15 @@
     return () => clearInterval(interval)
   })
 
-  let didNotUseAi = $state(false)
+  let aiLinksArray = $state([''])
   let selectedFileName = $state('')
   const form = useApiForm(SubmitFlagRouteV2, {
     onSuccess: response => {
       if (response.kind === GoodFlag.kind) {
         toast.success('Flag correct!')
         onSolve(challenge.id)
-        form.setData({ flag: '', aiChatLinks: '', solverScript: '', solverFile: undefined })
-        didNotUseAi = false
+        form.setData({ flag: '', aiChatLinks: '', solverFile: undefined })
+        aiLinksArray = ['']
         selectedFileName = ''
       } else if (response.kind === BadAlreadySolvedChallenge.kind) {
         toast.info('You already solved this challenge')
@@ -80,10 +82,18 @@
   function handleSubmit(event: SubmitEvent) {
     event.preventDefault()
     const flag = (form.data.flag ?? '').trim()
-    const aiChatLinks = (form.data.aiChatLinks ?? '').trim()
-    if (!flag || (!didNotUseAi && !aiChatLinks)) return
-    form.setData({ flag, aiChatLinks: didNotUseAi ? '' : aiChatLinks,
-      didNotUseAi: didNotUseAi ? 'true' : undefined })
+    const links = aiLinksArray.map(l => l.trim()).filter(Boolean)
+    const isDidNotUseAi = links.some(l => l.toLowerCase() === 'i did not use ai')
+    
+    if (!flag || links.length === 0) return
+    
+    const finalLinks = isDidNotUseAi ? '' : links.join('\n')
+    
+    form.setData({ 
+      flag, 
+      aiChatLinks: finalLinks,
+      didNotUseAi: isDidNotUseAi ? 'true' : undefined 
+    })
     form.submit()
   }
 </script>
@@ -107,24 +117,48 @@
   {:else}
     <form onsubmit={handleSubmit}>
       {#if submitState !== 'solved'}
-        <label for="ai-chat-links">AI chat links (one per line)</label>
-        <textarea id="ai-chat-links" placeholder="https://..." rows="2" maxlength="20480"
-          required={!didNotUseAi} disabled={form.submitting || didNotUseAi}
-          aria-invalid={!!form.errors.aiChatLinks || undefined}
-          bind:value={form.data.aiChatLinks}></textarea>
-        <label class="option">
-          <input type="checkbox" bind:checked={didNotUseAi} disabled={form.submitting} />
-          I did not use AI
-        </label>
+        <label for="ai-chat-links-0">AI chat links</label>
+        <div class="ai-links-container">
+          {#each aiLinksArray as link, i}
+            <div class="ai-link-row">
+              <input
+                id="ai-chat-links-{i}"
+                type="text"
+                placeholder='https://... or "I did not use AI"'
+                disabled={form.submitting}
+                bind:value={aiLinksArray[i]}
+                class="ai-link-input"
+                aria-invalid={!!form.errors.aiChatLinks || undefined}
+              />
+              {#if i > 0 || aiLinksArray.length > 1}
+                <button
+                  type="button"
+                  class="icon-btn"
+                  aria-label="Remove link"
+                  onclick={() => aiLinksArray.splice(i, 1)}
+                  disabled={form.submitting}
+                >
+                  <IconX />
+                </button>
+              {/if}
+              {#if i === aiLinksArray.length - 1}
+                <button
+                  type="button"
+                  class="icon-btn"
+                  aria-label="Add link"
+                  onclick={() => aiLinksArray.push('')}
+                  disabled={form.submitting || aiLinksArray.length >= 10}
+                >
+                  <IconPlus />
+                </button>
+              {/if}
+            </div>
+          {/each}
+        </div>
         {#if form.errors.aiChatLinks}
           <p role="alert">{form.errors.aiChatLinks}</p>
         {/if}
-        <label for="solver-script">Solver script (optional)</label>
-        <textarea id="solver-script" rows="3" maxlength="32768" disabled={form.submitting}
-          placeholder="Paste your solver script here"
-          bind:value={form.data.solverScript}></textarea>
-        {#if form.errors.solverScript}<p role="alert">{form.errors.solverScript}</p>{/if}
-        <label for="solver-file">Or upload a script/image (optional, max 2 MB)</label>
+        <label for="solver-file">Solver script/image (optional, max 2 MB)</label>
         <input id="solver-file" type="file"
           accept=".py,.js,.ts,.sh,.c,.cpp,.go,.rs,.txt,.png,.jpg,.jpeg,.webp"
           disabled={form.submitting}
@@ -164,7 +198,7 @@
           disabled={form.submitting ||
             submitState === 'solved' ||
             !form.data.flag?.trim() ||
-            (!didNotUseAi && !form.data.aiChatLinks?.trim())}
+            aiLinksArray.every(l => !l.trim())}
         >
           {#if form.submitting}
             <Spinner />
@@ -203,7 +237,7 @@
 
   .option { display: flex; align-items: center; gap: 0.5rem; }
 
-  textarea, input[type='file'] {
+  textarea, input[type='file'], input[type='text'].ai-link-input {
     inline-size: 100%;
     min-inline-size: 0;
     padding: 0.5rem;
@@ -211,6 +245,26 @@
     background: var(--background-l4);
     border: 2px solid transparent;
     border-radius: var(--radius-md);
+  }
+
+  .ai-links-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .ai-link-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .icon-btn {
+    block-size: 2.3rem;
+    inline-size: 2.3rem;
+    padding-inline: 0;
+    border-radius: var(--radius-md);
+    background: var(--background-l3);
   }
 
   submit-row {

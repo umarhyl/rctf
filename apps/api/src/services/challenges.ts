@@ -394,7 +394,6 @@ export const createSolveAndGetBloodNumber = async (
     aiChatUrl?: string
     aiChatUrls?: string[]
     didNotUseAi?: boolean
-    solverScript?: string
     solverFileUrl?: string
     matchedFlag?: MatchedFlagEntry
     cheated?: boolean
@@ -440,7 +439,6 @@ export const createSolveAndGetBloodNumber = async (
         ...(params.aiChatUrl ? { aiChatUrl: params.aiChatUrl } : {}),
         ...(params.aiChatUrls ? { aiChatUrls: params.aiChatUrls } : {}),
         ...(params.didNotUseAi ? { didNotUseAi: true } : {}),
-        ...(params.solverScript ? { solverScript: params.solverScript } : {}),
         ...(params.solverFileUrl ? { solverFileUrl: params.solverFileUrl } : {}),
         ...(params.submittedFlag
           ? { submittedFlag: params.submittedFlag }

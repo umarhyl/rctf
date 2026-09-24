@@ -32,7 +32,6 @@ export const SubmitFlagRouteV2 = defineRoute({
       flag: z.string().check(z.minLength(1), z.maxLength(1024)),
       aiChatLinks: z.string().check(z.maxLength(20_480)),
       didNotUseAi: z.optional(z.literal('true')),
-      solverScript: z.optional(z.string().check(z.maxLength(32_768))),
       solverFile: z.optional(
         FileFieldSchema.check(
           z.refine(
