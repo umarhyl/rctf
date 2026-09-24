@@ -2,7 +2,7 @@ services:
   redis:
     image: redis:8.2.2
     restart: always
-    command: ['redis-server', '--requirepass', 'DO_NOT_USE_ME']
+    command: ['redis-server', '--requirepass', 'intersec2026jayarutkid']
     ports:
       - '127.0.0.1:6379:6379'
     volumes:
@@ -13,7 +13,7 @@ services:
     ports:
       - '127.0.0.1:5432:5432'
     environment:
-      - POSTGRES_PASSWORD=DO_NOT_USE_ME
+      - POSTGRES_PASSWORD=intersec2026jayarutkid
       - POSTGRES_USER=rctf
       - POSTGRES_DB=rctf
     volumes:
