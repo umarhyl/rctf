@@ -46,8 +46,13 @@
 <svelte:document onanimationend={onAnimationEnd} />
 
 <svelte:head>
-  <link rel="icon" href={data.clientConfig.faviconUrl ?? favicon} />
-  <link rel="shortcut icon" href="/favicon.ico" />
+  <link
+    rel="icon"
+    href={data.clientConfig.faviconUrl ===
+    'https://redpwn.storage.googleapis.com/branding/rctf-favicon.ico'
+      ? favicon
+      : (data.clientConfig.faviconUrl ?? favicon)}
+  />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <link rel="manifest" href="/site.webmanifest" />
   <meta name="apple-mobile-web-app-title" content={data.clientConfig.ctfName} />
