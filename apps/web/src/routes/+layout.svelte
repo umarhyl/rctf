@@ -48,10 +48,11 @@
 <svelte:head>
   <link
     rel="icon"
+    type="image/svg+xml"
     href={data.clientConfig.faviconUrl ===
     'https://redpwn.storage.googleapis.com/branding/rctf-favicon.ico'
       ? favicon
-      : (data.clientConfig.faviconUrl ?? favicon)}
+      : (data.clientConfig.faviconUrl ?? '/favicon.svg')}
   />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
   <link rel="manifest" href="/site.webmanifest" />
